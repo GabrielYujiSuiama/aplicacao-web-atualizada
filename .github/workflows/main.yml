@@ -37,7 +37,7 @@ jobs:
         run: |
           scp -i /tmp/private_key \
           -o StrictHostKeyChecking=no \
-          -r ./HelloWorldApp/* \
+          -r ./appatividade1/* \
           ubuntu@${{ secrets.HOST }}:/home/ubuntu/appatividade1
 
       - name: Ajustar permissões
