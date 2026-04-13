@@ -3,26 +3,13 @@ name: Publicação automática com backup
 on:  
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Instala o .NET no container do GitHub Actions
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.303'
-
-      - name: Restaurar dependências
-        run: dotnet restore
-
-      - name: Publicar aplicação para Linux
-        run: dotnet publish -c Release -r linux-x64 --self-contained false -o ./publish
 
       - name: Criar chave privada
         run: |
@@ -37,21 +24,21 @@ jobs:
       - name: Fazer backup da aplicação atual
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          ssh -i /tmp/private_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${{ secrets.HOST }} \
+          ssh -i /tmp/private_key ubuntu@${{ secrets.HOST }} \
           "if [ -d /home/ubuntu/publish ]; then sudo cp -r /home/ubuntu/publish /home/ubuntu/backups/publish_$TIMESTAMP; fi"
-
-      - name: Ajustar permissões
-        run: |
-          ssh -i /tmp/private_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${{ secrets.HOST }} \
-          "sudo chown -R ubuntu:ubuntu /home/ubuntu/publish /home/ubuntu/backups && sudo chmod -R 755 /home/ubuntu/publish /home/ubuntu/backups"
 
       - name: Enviar aplicação compilada
         run: |
-          scp -i /tmp/private_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./publish/* ubuntu@${{ secrets.HOST }}:/home/ubuntu/publish
+          scp -i /tmp/private_key -o StrictHostKeyChecking=no -r ./HelloWorldApp/* ubuntu@${{ secrets.HOST }}:/home/ubuntu/publish
+
+      - name: Ajustar permissões
+        run: |
+          ssh -i /tmp/private_key ubuntu@${{ secrets.HOST }} \
+          "sudo chown -R ubuntu:ubuntu /home/ubuntu/publish && sudo chmod -R 755 /home/ubuntu/publish"
 
       - name: Reiniciar serviço
         run: |
-          ssh -i /tmp/private_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${{ secrets.HOST }} \
+          ssh -i /tmp/private_key ubuntu@${{ secrets.HOST }} \
           "sudo systemctl restart webapp1.service"
 
       - name: Remover chave privada
