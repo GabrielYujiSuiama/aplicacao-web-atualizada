@@ -18,27 +18,42 @@ jobs:
 
       - name: Criar pasta no servidor
         run: |
-          ssh -i /tmp/private_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${{ secrets.HOST }} \
+          ssh -i /tmp/private_key \
+          -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          ubuntu@${{ secrets.HOST }} \
           "sudo mkdir -p /home/ubuntu/appatividade1 /home/ubuntu/backups"
 
       - name: Fazer backup da aplicação atual
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          ssh -i /tmp/private_key ubuntu@${{ secrets.HOST }} \
+          ssh -i /tmp/private_key \
+          -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          ubuntu@${{ secrets.HOST }} \
           "if [ -d /home/ubuntu/appatividade1 ]; then sudo cp -r /home/ubuntu/appatividade1 /home/ubuntu/backups/appatividade1_$TIMESTAMP; fi"
 
       - name: Enviar aplicação para o servidor
         run: |
-          scp -i /tmp/private_key -o StrictHostKeyChecking=no -r ./HelloWorldApp/* ubuntu@${{ secrets.HOST }}:/home/ubuntu/appatividade1
+          scp -i /tmp/private_key \
+          -o StrictHostKeyChecking=no \
+          -r ./HelloWorldApp/* \
+          ubuntu@${{ secrets.HOST }}:/home/ubuntu/appatividade1
 
       - name: Ajustar permissões
         run: |
-          ssh -i /tmp/private_key ubuntu@${{ secrets.HOST }} \
+          ssh -i /tmp/private_key \
+          -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          ubuntu@${{ secrets.HOST }} \
           "sudo chown -R ubuntu:ubuntu /home/ubuntu/appatividade1 && sudo chmod -R 755 /home/ubuntu/appatividade1"
 
       - name: Reiniciar serviço
         run: |
-          ssh -i /tmp/private_key ubuntu@${{ secrets.HOST }} \
+          ssh -i /tmp/private_key \
+          -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          ubuntu@${{ secrets.HOST }} \
           "sudo systemctl restart webapp1.service"
 
       - name: Remover chave privada
